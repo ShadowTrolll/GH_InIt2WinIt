@@ -10,6 +10,13 @@ HEADER = {
     "x-token": "yomama"
 }
 
+class meauserement:
+    def __init__(self, meter_id, meter_type, importance, time):
+        self.meter_id = meter_id
+        self.meter_type = meter_type
+        self.importance = importance 
+        self.time = time
+
 def get_meter_data():
     response = requests.get(URL, headers=HEADER)
     data = json.loads(response.text)
@@ -19,3 +26,5 @@ def time2minute(linux_time):
     t = time.gmtime(linux_time)
     m = t.tm_hour * 60 + t.tm_min
     return m 
+
+print(get_meter_data())

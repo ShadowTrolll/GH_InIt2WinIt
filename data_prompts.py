@@ -50,6 +50,26 @@ def create_dataset(meter_id = None, one_day = True):
         
     return dataset
 
+def previous_datapoints(dataset, time, n_prev = 80):
+    assert isinstance(time, int)
+    assert time > dataset[0,1]
+    assert time > 0 and time < 24 * 60 + 1
+    time_copy = dataset[:,1].copy()
+    time_diff = time_copy - time
+    time_diff, = np.where(time_diff < 0)
+    time_idx = time_diff[-1]
+    
+    ret = np.zeros((n_prev, 2))
+    if time_idx >= n_prev:
+        ret[:,:] = dataset[time_idx:time_idx - n_prev: -1]
+    else:
+        ret[0:time_idx + 1] = np.vstack(
+            (dataset[time_idx:0: -1], dataset[0])
+        )
+        for j in range(time_idx + 1, n_prev):
+            ret[j] = dataset[0]
+    return ret
+
 def get_meter_data(meter_id = None):
     response = None
     if meter_id is not None:

@@ -16,9 +16,9 @@ HEADER = {
 }
 
 class MeterTimeSample:
-    def __init__(self, meter_id, meter_type, importance, time, availability):
+    def __init__(self, meter_id, static_importance, importance, time, availability):
         self.meter_id = meter_id
-        self.meter_type = meter_type
+        self.static_importance = static_importance
         self.importance = importance 
         self.time = time
         self.availability = availability
@@ -68,7 +68,6 @@ def time2minute(linux_time):
     m = t.tm_hour * 60 + t.tm_min
     return m 
 
-<<<<<<< HEAD
 def all_data(): 
     data = []
     for meter in get_meter_data():
@@ -77,7 +76,7 @@ def all_data():
             if 'status' not in data_meter:
                 data.append(MeterTimeSample(
                         meter['meter_id'],
-                        meter['meter_type'],
+                        meter['static_importance'],
                         float(data_meter['variable_importance']),
                         time2minute(data_meter['time']),
                         data_meter['availability'])
@@ -89,6 +88,4 @@ def all_data():
 
 all_data()
 #print(get_meter_data(100))
-=======
 print(get_meter_data(4))
->>>>>>> c3f8bd581a5ab7905dfee62f81a108908b86d0b1

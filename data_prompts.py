@@ -23,7 +23,7 @@ class MeterTimeSample:
         self.time = time
         self.availability = availability
 
-def create_dataset(meter_id = None, one_day = True):
+def create_dataset(meter_id, one_day = True):
     """
         dataset = [
             (importance_1, time_in_minutes_1),
@@ -32,25 +32,30 @@ def create_dataset(meter_id = None, one_day = True):
             ...
         ]
     """
-    dataset = []
-    if meter_id is not None:
-        assert isinstance(meter_id, int)
-        data = get_meter_data(meter_id)
-        for data_point in data:
-            dataset.append(
-                (data_point["variable_importance"], time2minute(data_point["time"]))
-            )
-    else:
-        raise NotImplementedError
-       
+    assert isinstance(meter_id, int)
+    data_points, dataset, datasets = [], [], []
+    data = get_meter_data(meter_id)
+    for data_point in data:
+        data_points.append(
+            (data_point["variable_importance"], time2minute(data_point["time"]))
+        )
     
-    dataset = np.array(dataset)
-    if one_day:
-        dataset_diff = np.diff(dataset[:,1])
-        idxs, = np.where(dataset_diff <= 0)
-        dataset = dataset[idxs[0]+1:idxs[1]+1, :]
+    data_points = np.array(data_points)
+    dataset_diff = np.diff(data_points[:,1])
+    idxs, = np.where(dataset_diff <= 0)
+    for i in range(0, len(idxs)):
+        if i + 1 != len(idxs):
+            dataset = data_points[idxs[i]+1:idxs[i+1]+1, :]
+        else:
+            dataset = data_points[idxs[i]+1:0, :]
+            
+        if dataset.shape[0] != 0:
+            datasets.append(dataset)
         
-    return dataset
+        
+    if one_day:
+        return datasets[0]
+    return datasets
 
 def previous_datapoints(dataset, time, n_prev = 80):
     assert isinstance(time, int)

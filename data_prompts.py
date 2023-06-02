@@ -56,6 +56,9 @@ def create_dataset(meter_id, one_day = True):
     assert isinstance(meter_id, int)
     data_points, dataset, datasets = [], [], []
     data = get_meter_data(meter_id)
+    if not data:
+        return None
+
     for data_point in data:
         data_points.append(
             (data_point["variable_importance"], time2minute(data_point["time"]))
@@ -78,6 +81,9 @@ def create_dataset(meter_id, one_day = True):
 
 def meter_fft(meter_id):
     datasets = create_dataset(meter_id = meter_id, one_day = False)
+    if not datasets:
+        return None
+
     avg_day = average_day(datasets)
     filtered = []
     for day in datasets:
@@ -99,12 +105,15 @@ def meter_fft(meter_id):
 
 def get_meter_data(meter_id):
     assert isinstance(meter_id, int)
-    static_importance = json.loads(
-        requests.get(URL_ALL, headers=HEADER).text
-    )[meter_id - 1]["static_importance"]
+    json_data = requests.get(URL_ALL, headers=HEADER).text
+    static_importance_json = json.loads(json_data)
+    static_importance = static_importance_json[meter_id - 1]["static_importance"]
     url = copy.copy(URL_ONE).format(meter_id = meter_id)
     response = requests.get(url, headers=HEADER)
     data = json.loads(response.text)
+    if 'status' in data:
+        return None
+
     for i in range(len(data)):
         data[i]["variable_importance"] *= static_importance
     return data
@@ -134,4 +143,6 @@ def all_data():
 
 if __name__ == "__main__":
     #print(get_meter_data(1))
-    print(meter_fft(30))
+    print(meter_fft(900))
+
+    #for i in range(0,1000i)

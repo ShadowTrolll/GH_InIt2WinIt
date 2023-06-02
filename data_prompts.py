@@ -72,15 +72,16 @@ def previous_datapoints(dataset, time, n_prev = 80):
             ret[j] = dataset[0]
     return ret
 
-def get_meter_data(meter_id = None):
-    response = None
-    if meter_id is not None:
-        assert isinstance(meter_id, int)
-        url = copy.copy(URL_ONE).format(meter_id = meter_id)
-    else:
-        url = URL_ALL
+def get_meter_data(meter_id):
+    assert isinstance(meter_id, int)
+    static_importance = json.loads(
+        requests.get(URL_ALL, headers=HEADER).text
+    )[meter_id - 1]["static_importance"]
+    url = copy.copy(URL_ONE).format(meter_id = meter_id)
     response = requests.get(url, headers=HEADER)
     data = json.loads(response.text)
+    for i in range(len(data)):
+        data[i]["variable_importance"] *= static_importance
     return data
 
 def time2minute(linux_time):
@@ -107,4 +108,4 @@ def all_data():
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
-    all_data()
+    print(get_meter_data(1))

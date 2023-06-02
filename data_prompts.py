@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import numpy as np
 import copy
 import time
 import requests
@@ -20,7 +21,7 @@ class meauserement:
         self.importance = importance 
         self.time = time
 
-def create_dataset(meter_id = None):
+def create_dataset(meter_id = None, one_day = True):
     """
         dataset = [
             (importance_1, time_in_minutes_1),
@@ -35,10 +36,18 @@ def create_dataset(meter_id = None):
         data = get_meter_data(meter_id)
         for data_point in data:
             dataset.append(
-                (data_point["importance"], time2minute(data_point["time"]))
+                (data_point["variable_importance"], time2minute(data_point["time"]))
             )
     else:
         raise NotImplementedError
+       
+    
+    dataset = np.array(dataset)
+    if one_day:
+        dataset_diff = np.diff(dataset[:,1])
+        idxs, = np.where(dataset_diff <= 0)
+        dataset = dataset[idxs[0]+1:idxs[1]+1, :]
+        
     return dataset
 
 def get_meter_data(meter_id = None):

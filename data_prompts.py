@@ -46,7 +46,6 @@ def get_meter_data(meter_id = None):
     if meter_id is not None:
         assert isinstance(meter_id, int)
         url = copy.copy(URL_ONE).format(meter_id = meter_id)
-        print(url)
     else:
         url = URL_ALL
     response = requests.get(url, headers=HEADER)

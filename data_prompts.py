@@ -5,6 +5,7 @@ import copy
 import time
 import requests
 import json
+import pickle
 
 URL_ALL = "https://greenhack.mymi.cz/meter"
 URL_ONE = r"https://greenhack.mymi.cz/meter/{meter_id}?ts_from=0"
@@ -14,12 +15,13 @@ HEADER = {
     "x-token": "yomama"
 }
 
-class meauserement:
-    def __init__(self, meter_id, meter_type, importance, time):
+class MeterTimeSample:
+    def __init__(self, meter_id, meter_type, importance, time, availability):
         self.meter_id = meter_id
         self.meter_type = meter_type
         self.importance = importance 
         self.time = time
+        self.availability = availability
 
 def create_dataset(meter_id = None, one_day = True):
     """
@@ -86,4 +88,27 @@ def time2minute(linux_time):
     m = t.tm_hour * 60 + t.tm_min
     return m 
 
+<<<<<<< HEAD
+def all_data(): 
+    data = []
+    for meter in get_meter_data():
+        print('next')
+        for data_meter in get_meter_data(meter['meter_id']):
+            if 'status' not in data_meter:
+                data.append(MeterTimeSample(
+                        meter['meter_id'],
+                        meter['meter_type'],
+                        float(data_meter['variable_importance']),
+                        time2minute(data_meter['time']),
+                        data_meter['availability'])
+                    )
+
+    print(data)
+    with open('data.pickle', 'wb') as handle:
+        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+all_data()
+#print(get_meter_data(100))
+=======
 print(get_meter_data(4))
+>>>>>>> c3f8bd581a5ab7905dfee62f81a108908b86d0b1

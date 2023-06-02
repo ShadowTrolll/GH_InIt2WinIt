@@ -5,6 +5,7 @@ import copy
 import time
 import requests
 import json
+from scipy.fft import fft, ifft
 import pickle
 
 URL_ALL = "https://greenhack.mymi.cz/meter"
@@ -23,7 +24,27 @@ class MeterTimeSample:
         self.time = time
         self.availability = availability
 
-def create_dataset(meter_id = None, one_day = True):
+def plot_datasets(dataset):
+    for i in range(len(dataset)):
+        day_i = dataset[i]
+        t = day_i[:,1]
+        i = day_i[:,0]
+        
+        plt.plot(t,i)
+        
+def plot_day(day):
+    t = day[:,1]
+    i = day[:,0]
+    plt.plot(t,i)
+    
+def average_day(dataset):
+    day_result = np.zeros_like(dataset[0])
+    for i in range(len(dataset)):
+        day_i = dataset[i]
+        day_result += day_i
+    return day_result / len(dataset)
+
+def create_dataset(meter_id, one_day = True):
     """
         dataset = [
             (importance_1, time_in_minutes_1),
@@ -32,45 +53,51 @@ def create_dataset(meter_id = None, one_day = True):
             ...
         ]
     """
-    dataset = []
-    if meter_id is not None:
-        assert isinstance(meter_id, int)
-        data = get_meter_data(meter_id)
-        for data_point in data:
-            dataset.append(
-                (data_point["variable_importance"], time2minute(data_point["time"]))
-            )
-    else:
-        raise NotImplementedError
-       
-    
-    dataset = np.array(dataset)
-    if one_day:
-        dataset_diff = np.diff(dataset[:,1])
-        idxs, = np.where(dataset_diff <= 0)
-        dataset = dataset[idxs[0]+1:idxs[1]+1, :]
-        
-    return dataset
-
-def previous_datapoints(dataset, time, n_prev = 80):
-    assert isinstance(time, int)
-    assert time > dataset[0,1]
-    assert time > 0 and time < 24 * 60 + 1
-    time_copy = dataset[:,1].copy()
-    time_diff = time_copy - time
-    time_diff, = np.where(time_diff < 0)
-    time_idx = time_diff[-1]
-    
-    ret = np.zeros((n_prev, 2))
-    if time_idx >= n_prev:
-        ret[:,:] = dataset[time_idx:time_idx - n_prev: -1]
-    else:
-        ret[0:time_idx + 1] = np.vstack(
-            (dataset[time_idx:0: -1], dataset[0])
+    assert isinstance(meter_id, int)
+    data_points, dataset, datasets = [], [], []
+    data = get_meter_data(meter_id)
+    for data_point in data:
+        data_points.append(
+            (data_point["variable_importance"], time2minute(data_point["time"]))
         )
-        for j in range(time_idx + 1, n_prev):
-            ret[j] = dataset[0]
-    return ret
+    
+    data_points = np.array(data_points)
+    dataset_diff = np.diff(data_points[:,1])
+    idxs, = np.where(dataset_diff <= 0)
+    for i in range(0, len(idxs)):
+        if i + 1 != len(idxs):
+            dataset = data_points[idxs[i]+1:idxs[i+1]+1, :]
+        else:
+            dataset = data_points[idxs[i]+1:0, :]
+            
+        if dataset.shape[0] != 0:
+            datasets.append(dataset)
+        
+    if one_day:
+        return datasets[0]
+    return datasets
+
+def meter_fft(meter_id):
+    datasets = create_dataset(meter_id = meter_id, one_day = False)
+    avg_day = average_day(datasets)
+    filtered = []
+    for day in datasets:
+        x = fft(day[:,0])
+
+        N = 8
+        K = 150
+
+        x[N:K] = 0
+        x[-K:-N] = 0
+
+        filtered.append(ifft(x))
+
+    filtered_avg = average_day(filtered)
+    #plot_day(avg_day)
+    #plt.plot(day[:,1],abs(filtered_avg))
+    #plt.show()
+    return [avg_day[:,1],abs(filtered_avg)]
+    
 
 def get_meter_data(meter_id):
     assert isinstance(meter_id, int)
@@ -107,9 +134,8 @@ def all_data():
     with open('data.pickle', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-all_data()
-#print(get_meter_data(100))
-print(get_meter_data(4))
-=======
+
+
 if __name__ == "__main__":
-    print(get_meter_data(1))
+    #print(get_meter_data(1))
+    print(meter_fft(30))

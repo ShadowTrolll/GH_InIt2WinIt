@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import time
 import requests
 import json
@@ -44,7 +45,7 @@ def get_meter_data(meter_id = None):
     response = None
     if meter_id is not None:
         assert isinstance(meter_id, int)
-        url = URL_ONE.format(meter_id = meter_id)
+        url = copy.copy(URL_ONE).format(meter_id = meter_id)
         print(url)
     else:
         url = URL_ALL
@@ -57,4 +58,4 @@ def time2minute(linux_time):
     m = t.tm_hour * 60 + t.tm_min
     return m 
 
-print(get_meter_data())
+print(get_meter_data(4))

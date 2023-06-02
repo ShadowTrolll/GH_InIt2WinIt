@@ -52,15 +52,36 @@ def create_dataset(meter_id = None, one_day = True):
         
     return dataset
 
-def get_meter_data(meter_id = None):
-    response = None
-    if meter_id is not None:
-        assert isinstance(meter_id, int)
-        url = copy.copy(URL_ONE).format(meter_id = meter_id)
+def previous_datapoints(dataset, time, n_prev = 80):
+    assert isinstance(time, int)
+    assert time > dataset[0,1]
+    assert time > 0 and time < 24 * 60 + 1
+    time_copy = dataset[:,1].copy()
+    time_diff = time_copy - time
+    time_diff, = np.where(time_diff < 0)
+    time_idx = time_diff[-1]
+    
+    ret = np.zeros((n_prev, 2))
+    if time_idx >= n_prev:
+        ret[:,:] = dataset[time_idx:time_idx - n_prev: -1]
     else:
-        url = URL_ALL
+        ret[0:time_idx + 1] = np.vstack(
+            (dataset[time_idx:0: -1], dataset[0])
+        )
+        for j in range(time_idx + 1, n_prev):
+            ret[j] = dataset[0]
+    return ret
+
+def get_meter_data(meter_id):
+    assert isinstance(meter_id, int)
+    static_importance = json.loads(
+        requests.get(URL_ALL, headers=HEADER).text
+    )[meter_id - 1]["static_importance"]
+    url = copy.copy(URL_ONE).format(meter_id = meter_id)
     response = requests.get(url, headers=HEADER)
     data = json.loads(response.text)
+    for i in range(len(data)):
+        data[i]["variable_importance"] *= static_importance
     return data
 
 def time2minute(linux_time):
@@ -89,3 +110,6 @@ def all_data():
 all_data()
 #print(get_meter_data(100))
 print(get_meter_data(4))
+=======
+if __name__ == "__main__":
+    print(get_meter_data(1))

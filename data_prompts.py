@@ -112,9 +112,7 @@ def all_data():
     with open('data.pickle', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-all_data()
-#print(get_meter_data(100))
-print(get_meter_data(4))
-=======
 if __name__ == "__main__":
     print(get_meter_data(1))
+    print(get_meter_data(4))    
+    all_data()

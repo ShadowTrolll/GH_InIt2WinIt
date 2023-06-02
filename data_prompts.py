@@ -72,7 +72,6 @@ def create_dataset(meter_id, one_day = True):
             
         if dataset.shape[0] != 0:
             datasets.append(dataset)
-        
     if one_day:
         return datasets[0]
     return datasets
@@ -97,7 +96,6 @@ def meter_fft(meter_id):
     #plt.plot(day[:,1],abs(filtered_avg))
     #plt.show()
     return [avg_day[:,1],abs(filtered_avg)]
-    
 
 def get_meter_data(meter_id):
     assert isinstance(meter_id, int)
@@ -133,8 +131,6 @@ def all_data():
     print(data)
     with open('data.pickle', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-
 
 if __name__ == "__main__":
     #print(get_meter_data(1))

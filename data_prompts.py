@@ -88,7 +88,6 @@ def time2minute(linux_time):
     m = t.tm_hour * 60 + t.tm_min
     return m 
 
-<<<<<<< HEAD
 def all_data(): 
     data = []
     for meter in get_meter_data():
@@ -107,8 +106,5 @@ def all_data():
     with open('data.pickle', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-all_data()
-#print(get_meter_data(100))
-=======
-print(get_meter_data(4))
->>>>>>> c3f8bd581a5ab7905dfee62f81a108908b86d0b1
+if __name__ == "__main__":
+    all_data()

@@ -64,23 +64,31 @@ def create_dataset(meter_id, one_day = True):
             (data_point["variable_importance"], time2minute(data_point["time"]))
         )
     
+    #print(data_points)
     data_points = np.array(data_points)
     dataset_diff = np.diff(data_points[:,1])
     idxs, = np.where(dataset_diff <= 0)
-    for i in range(0, len(idxs)):
+    #print("Idxs", idxs, len(data_points))
+    for i in range(len(idxs)):
         if i + 1 != len(idxs):
+            #print("ids1", idxs[i]+1, idxs[i+1]+1)
             dataset = data_points[idxs[i]+1:idxs[i+1]+1, :]
         else:
-            dataset = data_points[idxs[i]+1:0, :]
+            #print("ids2", idxs[i]+1, 0)
+            dataset = data_points[idxs[i]+1:len(data_points), :]
+            #print("dss", dataset.shape)
             
         if dataset.shape[0] != 0:
             datasets.append(dataset)
+    #dataset = data_points[idxs[-1]+1:len(data_points), :]
+    #if dataset.shape[0] != 0:
+    #    datasets.append(dataset)
+
     if one_day:
         return datasets[0]
     return datasets
 
-def meter_fft(meter_id):
-    datasets = create_dataset(meter_id = meter_id, one_day = False)
+def meter_fft(datasets):
     if not datasets:
         return None
 
@@ -105,7 +113,11 @@ def meter_fft(meter_id):
 
 def get_meter_data(meter_id):
     assert isinstance(meter_id, int)
-    json_data = requests.get(URL_ALL, headers=HEADER).text
+    try:
+        json_data = requests.get(URL_ALL, headers=HEADER).text
+    except:
+        print("ERROR from", meter_id)
+        return None
     static_importance_json = json.loads(json_data)
     static_importance = static_importance_json[meter_id - 1]["static_importance"]
     url = copy.copy(URL_ONE).format(meter_id = meter_id)
